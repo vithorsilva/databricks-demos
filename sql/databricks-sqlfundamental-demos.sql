@@ -175,6 +175,10 @@ group by c.c_mktsegment, year(o.o_orderdate)
 
 -- COMMAND ----------
 
+use samples.tpch
+
+-- COMMAND ----------
+
 -- MAGIC %md
 -- MAGIC ## 1. PIVOT
 
@@ -406,7 +410,21 @@ order by Contexto, year, month
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ### GROUP BY CUBE
+-- MAGIC ### GROUP BY CUBE - Exemplo 1
+-- MAGIC Segue a lógica do GROUPING SETS, porém, ele executa todas as possibilidades de uso das colunas disponíveis.  Exemplo você tem a coluna A, B e C, então ele fará:
+-- MAGIC
+-- MAGIC | Contexto  |    A    |  B    |  C    |
+-- MAGIC |---------- | ------- |-------|------ |
+-- MAGIC |  0        |  X      | X     | X     |
+-- MAGIC |  1        |  X      | X     | NULL  |
+-- MAGIC |  2        |  X      | NULL  | X     |
+-- MAGIC |  3        |  X      | NULL  | NULL  |
+-- MAGIC |  4        |  NULL   | X     | X     |
+-- MAGIC |  5        |  NULL   | X     | NULL  |
+-- MAGIC |  6        |  NULL   | NULL  | X     |
+-- MAGIC |  7        |  NULL   | NULL  | NULL  |
+-- MAGIC
+-- MAGIC Obs.: X é onde está sendo realizado o agrupamento no momento do contexto.
 
 -- COMMAND ----------
 
@@ -425,18 +443,170 @@ order by Contexto, year, month
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ### GROUP BY ROLLUP
+-- MAGIC ### GROUP BY CUBE - Exemplo 2
 
 -- COMMAND ----------
 
 select 
-  GROUPING_ID(year(o.o_orderdate), month(o.o_orderdate)) as Contexto,
+  GROUPING_ID(year(o.o_orderdate), month(o.o_orderdate), pa.p_size) as Contexto,
   year(o.o_orderdate) as year,
   month(o.o_orderdate) as month,
+  pa.p_size as productsize,
   COUNT(DISTINCT li.l_orderkey) as total_orders,
   COUNT(DISTINCT li.l_partkey) qtd_distinct_produtos,
   SUM(li.l_extendedprice) as total_revenue
 from lineitem as li
 INNER JOIN orders as o ON o.o_orderkey = li.l_orderkey
-group by ROLLUP (year(o.o_orderdate), (month(o.o_orderdate)))
+INNER JOIN part as pa ON pa.p_partkey = li.l_partkey
+group by CUBE (year(o.o_orderdate), (month(o.o_orderdate)), pa.p_size)
 order by Contexto, year, month
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ### GROUP BY ROLLUP
+-- MAGIC Segue a lógica do CUBE, porém, ele executa as possibilidades de uso das colunas disponíveis em uma sequencia conforme a ordem definida, exemplo você tem a coluna A, B e C, então ele fará:
+-- MAGIC | Contexto  |    A    |  B    |  C    |
+-- MAGIC |---------- | ------- |-------|------ |
+-- MAGIC |  0        |  X      | X     | X     |
+-- MAGIC |  1        |  X      | X     | NULL  |
+-- MAGIC |  3        |  X      | NULL  | NULL  |
+-- MAGIC |  7        |  NULL   | NULL  | NULL  |
+-- MAGIC
+-- MAGIC Obs.: X é onde está sendo realizado o agrupamento no momento do contexto.
+
+-- COMMAND ----------
+
+select 
+  GROUPING_ID(year(o.o_orderdate), month(o.o_orderdate), pa.p_size) as Contexto,
+  year(o.o_orderdate) as year,
+  month(o.o_orderdate) as month,
+  pa.p_size as productsize,
+  COUNT(DISTINCT li.l_orderkey) as total_orders,
+  COUNT(DISTINCT li.l_partkey) qtd_distinct_produtos,
+  SUM(li.l_extendedprice) as total_revenue
+from lineitem as li
+INNER JOIN orders as o ON o.o_orderkey = li.l_orderkey
+INNER JOIN part as pa ON pa.p_partkey = li.l_partkey
+group by ROLLUP (year(o.o_orderdate), (month(o.o_orderdate)), pa.p_size)
+order by Contexto, year, month, productsize
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC # SELECT - Avançado
+
+-- COMMAND ----------
+
+use samples.tpch
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ## 1. WINDOW FUNCTIONS
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ### Exemplo 1
+-- MAGIC Este código SQL executa uma série de cálculos e agregações em dados de pedidos, agrupados por ano, mês e segmento de cliente. Aqui está uma análise concisa do que cada parte do código faz:
+-- MAGIC
+-- MAGIC **1. Subconsulta (d):**
+-- MAGIC
+-- MAGIC * Agrega dados de pedidos por ano, mês e segmento de cliente.
+-- MAGIC * Une a tabela de pedidos (o) com a tabela de clientes (c) na chave do cliente.
+-- MAGIC * Filtra pedidos para incluir apenas aqueles com status 'F'.
+-- MAGIC * Calcula o preço total dos pedidos, o número de pedidos e o valor médio do pedido (ticket) para cada ano, mês e segmento.
+-- MAGIC
+-- MAGIC
+-- MAGIC **2. Consulta principal:**
+-- MAGIC
+-- MAGIC * Seleciona vários campos da subconsulta (d):
+-- MAGIC * year, monthno, segment, total_price e qty_orders (renomeados como orders).
+-- MAGIC * Calcula o total corrente de pedidos por mês dentro de cada ano usando uma função de janela.
+-- MAGIC * Calcula a porcentagem de pedidos para o mês do total corrente de pedidos para o ano.
+-- MAGIC * Calcula o total corrente de pedidos por segmento dentro de cada ano.
+-- MAGIC * Seleciona o valor do ticket.
+-- MAGIC * Calcula o valor médio do ticket por mês dentro de cada ano.
+-- MAGIC * Calcula os valores mínimo, médio e máximo do ticket por segmento.
+-- MAGIC * Ordena o resultado final por ano, monthno e segmento.
+
+-- COMMAND ----------
+
+SELECT 
+  d.year, 
+  d.monthno, 
+  d.segment, 
+  d.total_price, 
+  d.qty_orders AS orders,
+  -- Calculate the running total of orders per month within each year
+  SUM(d.qty_orders) OVER (PARTITION BY d.year ORDER BY d.monthno) AS orders_month,
+  -- Calculate the percentage of orders for the month out of the running total of orders for the year
+  ROUND((orders / orders_month), 2) AS pct_month,
+  -- Calculate the running total of orders per segment within each year
+  SUM(d.qty_orders) OVER (PARTITION BY d.year ORDER BY d.monthno, d.segment) AS orders_run_month,
+  d.ticket,
+  -- Calculate the average ticket value per month within each year
+  ROUND(AVG(d.ticket) OVER (PARTITION BY d.year ORDER BY d.monthno), 2) AS ticket_avg_month,
+  -- Calculate the minimum ticket value per segment
+  ROUND(MIN(d.ticket) OVER (PARTITION BY d.segment), 2) AS ticket_min_segment,
+  -- Calculate the average ticket value per segment
+  ROUND(AVG(d.ticket) OVER (PARTITION BY d.segment), 2) AS ticket_avg_segment,
+  -- Calculate the maximum ticket value per segment
+  ROUND(MAX(d.ticket) OVER (PARTITION BY d.segment), 2) AS ticket_max_segment
+FROM (
+  -- Subquery to aggregate order data by year, month, and customer segment
+  SELECT 
+    c.c_mktsegment AS segment,
+    YEAR(o.o_orderdate) AS year,
+    MONTH(o.o_orderdate) AS monthno,
+    SUM(o.o_totalprice) AS total_price, 
+    COUNT(*) AS qty_orders,
+    -- Calculate the average order value (ticket)
+    ROUND(SUM(o.o_totalprice) / COUNT(*), 2) AS ticket
+  FROM orders AS o
+  INNER JOIN customer AS c ON c.c_custkey = o.o_custkey
+  WHERE o.o_orderstatus = 'F'
+  GROUP BY YEAR(o.o_orderdate), MONTH(o.o_orderdate), c.c_mktsegment
+) d
+ORDER BY d.year, d.monthno, d.segment
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ### Exemplo 2
+-- MAGIC Este código fornece insights sobre o desempenho mensal de diferentes segmentos de mercado, incluindo como o valor médio do pedido (ticket) muda ao longo do tempo, tanto de mês para mês quanto de ano para ano.
+
+-- COMMAND ----------
+
+SELECT 
+  d.period,  -- Period (year-month) of the order
+  d.year, 
+  d.monthno, 
+  d.segment, 
+  d.total_price, 
+  d.qty_orders AS orders,
+  d.ticket,
+  -- Previous month's ticket value within the same year and segment
+  LAG(d.ticket) OVER (PARTITION BY d.year, d.segment ORDER BY d.monthno) AS ticket_pm,
+  -- Variation from the previous month's ticket value
+  d.ticket - ticket_pm AS var_pm,
+  -- Ticket value from the same month in the previous year within the same segment
+  LAG(d.ticket, 12) OVER (PARTITION BY d.segment ORDER BY d.period) AS ticket_py,
+  -- Variation from the same month in the previous year's ticket value
+  d.ticket - ticket_py AS var_py
+FROM (
+  SELECT 
+    c.c_mktsegment AS segment,
+    YEAR(o.o_orderdate) AS year,
+    MONTH(o.o_orderdate) AS monthno,
+    MAKE_DATE(year, monthno, 1) AS period,
+    SUM(o.o_totalprice) AS total_price, 
+    COUNT(*) AS qty_orders,
+    ROUND(SUM(o.o_totalprice) / COUNT(*), 2) AS ticket
+  FROM orders AS o
+  INNER JOIN customer AS c ON c.c_custkey = o.o_custkey
+  WHERE o.o_orderstatus = 'F' AND o.o_orderdate < '1995-01-01'
+  GROUP BY YEAR(o.o_orderdate), MONTH(o.o_orderdate), c.c_mktsegment
+) d
+ORDER BY d.year, d.monthno, d.segment

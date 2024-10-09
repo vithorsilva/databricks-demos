@@ -3,7 +3,5 @@ Neste material, você encontrará scripts a serem executados no ecossistema Data
 
 Sobre os arquivos:
 * [databricks-sqlfundamental-demos](sql/databricks-sqlfundamental-demos): apresenta um roteiro do básico a avançado no uso da linguagem SQL para consulta a dados;
-
-
 * Roteiro para gráficos:
   * [Visualization types](https://learn.microsoft.com/en-us/azure/databricks/visualizations/visualization-types);
