@@ -1,0 +1,1509 @@
+{
+  "datasets": [
+    {
+      "name": "142c4fbf",
+      "displayName": "dataset_oportunidades",
+      "queryLines": [
+        "select\r\n",
+        "    -- Dados sobre o Lead (Dimensões)\r\n",
+        "    o.opportunityid, o.type, o.name as opportunity, /*o.description,*/ o.createddate, o.closedate, o.days_to_close, o.leadsource,\r\n",
+        "    -- Dados sobre a Conta (Dimensões)\r\n",
+        "    o.accountid, o.account_name, o.industry as account_industry, o.business_type__c as industry_businesstype, \r\n",
+        "    o.region as account_region, o.company_size_segment__c as account_sizesegment, o.region_size as account_region_size, o.annualrevenue as account_annualrevenue,\r\n",
+        "    -- Dados sobre o Vendedor (Dimensões)\r\n",
+        "    o.ownerid, u.name as salesman, sup.name as salesman_manager ,\r\n",
+        "    o.probability,\r\n",
+        "    o.stagename,\r\n",
+        "    o.forecastcategory,\r\n",
+        "    -- Medidas\r\n",
+        "    o.amount, o.opportunity_amount,\r\n",
+        "    o.New_Expansion_Booking_Annual__c,\r\n",
+        "    o.New_Expansion_Booking_Annual_Wtd__c,\r\n",
+        "    o.New_Recurring_Bookings_Manual__c,\r\n",
+        "    o.New_Recurring_Bookings__c\r\n",
+        "from main.dbdemos_aibi_sales_pipeline_review.opportunity o\r\n",
+        "inner join main.dbdemos_aibi_sales_pipeline_review.user u on o.ownerid = u.id\r\n",
+        "LEFT join main.dbdemos_aibi_sales_pipeline_review.user sup on sup.id = u.managerid"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "12f0f9e4",
+      "displayName": "Indicadores",
+      "layout": [
+        {
+          "widget": {
+            "name": "oportunidades",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Oportunidades",
+                "showDescription": false,
+                "description": "Quantidade"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "count(*)"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 1,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "oportunidades-1",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "account_region",
+                      "expression": "`account_region`"
+                    },
+                    {
+                      "name": "monthly(createddate)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `createddate`)"
+                    },
+                    {
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "showDescription": false,
+                "title": "Oportunidades criadas mês a mês por região",
+                "description": "Quantidade mês a mês por região"
+              },
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(createddate)",
+                  "axis": {
+                    "hideTitle": true
+                  },
+                  "displayName": "Período",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "count(*)",
+                  "displayName": "Oportunidades",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "account_region",
+                  "legend": {
+                    "position": "top"
+                  },
+                  "displayName": "Região",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 3,
+            "width": 5,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "92b80536",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "avg(days_to_close)",
+                      "expression": "AVG(`days_to_close`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Dias para fechar",
+                "showDescription": false,
+                "description": "Dias para fechar"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "avg(days_to_close)",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 0
+                    },
+                    "significantFigures": {
+                      "type": "all"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 1,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "5c03b09a",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "sum(opportunity_amount)",
+                      "expression": "SUM(`opportunity_amount`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Faturamento total",
+                "showDescription": false,
+                "description": "Faturamento total"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(opportunity_amount)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "pipeline-em-aberto",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "stagename",
+                      "expression": "`stagename`"
+                    },
+                    {
+                      "name": "account_region",
+                      "expression": "`account_region`"
+                    },
+                    {
+                      "name": "account_sizesegment",
+                      "expression": "`account_sizesegment`"
+                    },
+                    {
+                      "name": "sum(opportunity_amount)",
+                      "expression": "SUM(`opportunity_amount`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`stagename` IS NULL OR `stagename` NOT IN ('5. Closed Won', 'X. Closed Lost')"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "frame": {
+                "showTitle": true,
+                "title": "Pipeline em aberto"
+              },
+              "widgetType": "sankey",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(opportunity_amount)",
+                  "displayName": "Oportunidades"
+                },
+                "stages": [
+                  {
+                    "fieldName": "stagename",
+                    "displayName": "Estágio"
+                  },
+                  {
+                    "fieldName": "account_region",
+                    "displayName": "Região"
+                  },
+                  {
+                    "fieldName": "account_sizesegment",
+                    "displayName": "Segmento"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 8,
+            "width": 4,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "gerente-de-vendas",
+            "queries": [
+              {
+                "name": "dashboards/01f11742a17b103387dd4934180c0581/datasets/01f117cd37fe10729a70af5f14073d29_salesman_manager",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "salesman_manager",
+                      "expression": "`salesman_manager`"
+                    },
+                    {
+                      "name": "salesman_manager_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Gerente"
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "salesman_manager",
+                    "queryName": "dashboards/01f11742a17b103387dd4934180c0581/datasets/01f117cd37fe10729a70af5f14073d29_salesman_manager"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 5,
+            "y": 0,
+            "width": 3,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "segmento",
+            "queries": [
+              {
+                "name": "dashboards/01f11742a17b103387dd4934180c0581/datasets/01f117cd37fe10729a70af5f14073d29_account_sizesegment",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "account_sizesegment",
+                      "expression": "`account_sizesegment`"
+                    },
+                    {
+                      "name": "account_sizesegment_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Segmento"
+              },
+              "widgetType": "filter-single-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "account_sizesegment",
+                    "queryName": "dashboards/01f11742a17b103387dd4934180c0581/datasets/01f117cd37fe10729a70af5f14073d29_account_sizesegment"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 0,
+            "width": 4,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "50dfafe0",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`stagename` IN ('1. Discovery', '2. Demo', '3. Validation', '4. Procure')"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Em aberto",
+                "showDescription": false,
+                "description": "Quantidade"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "count(*)"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 1,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "e64b5898",
+            "multilineTextboxSpec": {
+              "lines": [
+                "![DEX](https://www.datasource.expert/wp-content/uploads/2025/08/logo-dex-horizontal.png)"
+              ]
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 0,
+            "width": 2,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "2df610ef",
+            "multilineTextboxSpec": {
+              "lines": [
+                "<span style=\"font-size:24px\">**SALES PIPELINE**</span>"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 3,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "3e61ab1b",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "account_region",
+                      "expression": "`account_region`"
+                    },
+                    {
+                      "name": "sum(opportunity_amount)",
+                      "expression": "SUM(`opportunity_amount`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "showDescription": false,
+                "title": "Pipeline construído por Região",
+                "description": "Quantidade mês a mês por região"
+              },
+              "widgetType": "waterfall",
+              "encodings": {
+                "x": {
+                  "fieldName": "account_region",
+                  "axis": {
+                    "hideTitle": true
+                  },
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(opportunity_amount)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "displayName": "Faturamento Total",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 5,
+            "y": 8,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "b58145f1",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "stagename",
+                      "expression": "`stagename`"
+                    },
+                    {
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`stagename` IN ('1. Discovery', '2. Demo', '3. Validation', '4. Procure')"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "showDescription": false,
+                "title": "Funil de Oportunidades (Em aberto)",
+                "description": "Quantidade mês a mês por região"
+              },
+              "widgetType": "funnel",
+              "encodings": {
+                "x": {
+                  "fieldName": "count(*)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "axis": {
+                    "hideTitle": true
+                  }
+                },
+                "y": {
+                  "fieldName": "stagename",
+                  "axis": {
+                    "hideTitle": true
+                  },
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "color": {
+                  "fieldName": "stagename",
+                  "legend": {
+                    "hide": true
+                  },
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 3,
+            "width": 4,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "top-10-maiores-vendedores",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "salesman_manager",
+                      "expression": "`salesman_manager`"
+                    },
+                    {
+                      "name": "salesman",
+                      "expression": "`salesman`"
+                    },
+                    {
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
+                    },
+                    {
+                      "name": "sum(opportunity_amount)",
+                      "expression": "SUM(`opportunity_amount`)"
+                    },
+                    {
+                      "name": "avg(days_to_close)",
+                      "expression": "AVG(`days_to_close`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`stagename` IN ('5. Closed Won')"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "displayRowNumbers": true,
+              "frame": {
+                "showTitle": true,
+                "title": "Top 5 maiores vendedores (Faturamento Total) - Negócios Ganhos"
+              },
+              "rowsPerPage": 5,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "salesman_manager",
+                    "displayName": "Gerente"
+                  },
+                  {
+                    "fieldName": "salesman",
+                    "displayName": "Vendedor"
+                  },
+                  {
+                    "fieldName": "count(*)",
+                    "displayName": "#"
+                  },
+                  {
+                    "fieldName": "sum(opportunity_amount)",
+                    "format": {
+                      "type": "number-currency",
+                      "currencyCode": "USD",
+                      "abbreviation": "compact",
+                      "decimalPlaces": {
+                        "type": "exact",
+                        "places": 2
+                      },
+                      "hideGroupSeparator": false
+                    },
+                    "displayName": "Total"
+                  },
+                  {
+                    "fieldName": "avg(days_to_close)",
+                    "displayName": "Tempo Médio"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 5,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "74b74d54",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "sum(opportunity_amount)",
+                      "expression": "SUM(`opportunity_amount`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`stagename` IS NULL OR `stagename` NOT IN ('X. Closed Lost', '5. Closed Won')"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Faturamento em aberto",
+                "showDescription": false,
+                "description": "Faturamento total"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(opportunity_amount)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 10,
+            "y": 1,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "9832fd5c",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "monthly(closedate)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `closedate`)"
+                    },
+                    {
+                      "name": "sum(opportunity_amount)",
+                      "expression": "SUM(`opportunity_amount`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`stagename` IN ('5. Closed Won')"
+                    }
+                  ],
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "DESC",
+                      "expression": "DATE_TRUNC(\"MONTH\", `closedate`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "KPI - Total Conquistado",
+                "showDescription": false,
+                "description": "Faturamento total"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(opportunity_amount)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "style": {
+                    "fontSize": 16
+                  }
+                },
+                "target": {
+                  "fieldName": "sum(opportunity_amount)",
+                  "period": {
+                    "type": "relative-to-value-period",
+                    "offset": -1
+                  },
+                  "change": {
+                    "type": "percent"
+                  }
+                },
+                "period": {
+                  "fieldName": "monthly(closedate)"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 1,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "top-5-industrias-todas-oportunidades-1",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "sum(opportunity_amount)",
+                      "expression": "SUM(`opportunity_amount`)"
+                    },
+                    {
+                      "name": "account_industry",
+                      "expression": "`account_industry`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Top 5 Indústrias (Todas oportunidades)"
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "sum(opportunity_amount)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "axis": {
+                    "hideTitle": true
+                  },
+                  "displayName": "Faturamento Total",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "account_industry",
+                  "axis": {
+                    "hideTitle": true
+                  },
+                  "scale": {
+                    "type": "categorical",
+                    "categorySize": {
+                      "type": "number-of-categories",
+                      "number": 10
+                    },
+                    "sort": {
+                      "by": "x-reversed"
+                    }
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 5,
+            "y": 1,
+            "width": 3,
+            "height": 7
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "f5926103",
+      "displayName": "Global Filters",
+      "layout": [
+        {
+          "widget": {
+            "name": "periodo-de-fechamento",
+            "queries": [
+              {
+                "name": "dashboards/01f11742a17b103387dd4934180c0581/datasets/01f117cd37fe10729a70af5f14073d29_closedate",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "closedate",
+                      "expression": "`closedate`"
+                    },
+                    {
+                      "name": "closedate_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Período de Fechamento"
+              },
+              "widgetType": "filter-date-range-picker",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "closedate",
+                    "queryName": "dashboards/01f11742a17b103387dd4934180c0581/datasets/01f117cd37fe10729a70af5f14073d29_closedate"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 2
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_GLOBAL_FILTERS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "7dc7a267",
+      "displayName": "Detalhamento",
+      "layout": [
+        {
+          "widget": {
+            "name": "ef5e1299",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Oportunidades",
+                "showDescription": false,
+                "description": "Quantidade"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "count(*)"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 0,
+            "width": 1,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "8acd0b44",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "avg(days_to_close)",
+                      "expression": "AVG(`days_to_close`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Dias para fechar",
+                "showDescription": false,
+                "description": "Dias para fechar"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "avg(days_to_close)",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 0
+                    },
+                    "significantFigures": {
+                      "type": "all"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 0,
+            "width": 1,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "22c54d71",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "sum(opportunity_amount)",
+                      "expression": "SUM(`opportunity_amount`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Faturamento total",
+                "showDescription": false,
+                "description": "Faturamento total"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(opportunity_amount)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 5,
+            "y": 0,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "66b14c24",
+            "multilineTextboxSpec": {
+              "lines": [
+                "![DEX](https://www.datasource.expert/wp-content/uploads/2025/08/logo-dex-horizontal.png)"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 2,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "e113eec6",
+            "multilineTextboxSpec": {
+              "lines": [
+                "<span style=\"font-size:24px\">**SALES PIPELINE**</span>\n",
+                "\n",
+                "Exibição detalhada dos pedidos"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "2deb0e4b",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`stagename` IN ('1. Discovery', '2. Demo', '3. Validation', '4. Procure')"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Em aberto",
+                "showDescription": false,
+                "description": "Quantidade"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "count(*)"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 0,
+            "width": 1,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "cb99774a",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "account_name",
+                      "expression": "`account_name`"
+                    },
+                    {
+                      "name": "industry_businesstype",
+                      "expression": "`industry_businesstype`"
+                    },
+                    {
+                      "name": "createddate",
+                      "expression": "`createddate`"
+                    },
+                    {
+                      "name": "closedate",
+                      "expression": "`closedate`"
+                    },
+                    {
+                      "name": "days_to_close",
+                      "expression": "`days_to_close`"
+                    },
+                    {
+                      "name": "account_industry",
+                      "expression": "`account_industry`"
+                    },
+                    {
+                      "name": "account_region_size",
+                      "expression": "`account_region_size`"
+                    },
+                    {
+                      "name": "salesman",
+                      "expression": "`salesman`"
+                    },
+                    {
+                      "name": "stagename",
+                      "expression": "`stagename`"
+                    },
+                    {
+                      "name": "opportunity_amount",
+                      "expression": "`opportunity_amount`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "displayRowNumbers": true,
+              "rowsPerPage": 10,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "account_name",
+                    "displayName": "Customer"
+                  },
+                  {
+                    "fieldName": "industry_businesstype",
+                    "displayName": "Business Type"
+                  },
+                  {
+                    "fieldName": "createddate",
+                    "displayName": "Created"
+                  },
+                  {
+                    "fieldName": "closedate",
+                    "displayName": "Closed"
+                  },
+                  {
+                    "fieldName": "days_to_close",
+                    "displayName": "Duração"
+                  },
+                  {
+                    "fieldName": "account_industry",
+                    "displayName": "Industry"
+                  },
+                  {
+                    "fieldName": "account_region_size",
+                    "displayName": "Region Size"
+                  },
+                  {
+                    "fieldName": "salesman",
+                    "displayName": "Salesman"
+                  },
+                  {
+                    "fieldName": "stagename",
+                    "displayName": "Stage"
+                  },
+                  {
+                    "fieldName": "opportunity_amount",
+                    "format": {
+                      "type": "number-currency",
+                      "currencyCode": "USD",
+                      "abbreviation": "none",
+                      "decimalPlaces": {
+                        "type": "exact",
+                        "places": 2
+                      },
+                      "hideGroupSeparator": false
+                    },
+                    "displayName": "OP Total Amount"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 3,
+            "width": 12,
+            "height": 8
+          }
+        },
+        {
+          "widget": {
+            "name": "c603c59d",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "monthly(closedate)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `closedate`)"
+                    },
+                    {
+                      "name": "sum(opportunity_amount)",
+                      "expression": "SUM(`opportunity_amount`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`stagename` IN ('5. Closed Won')"
+                    }
+                  ],
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "DESC",
+                      "expression": "DATE_TRUNC(\"MONTH\", `closedate`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Oportunidades Encerradas",
+                "showDescription": false,
+                "description": "Faturamento total"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(opportunity_amount)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  }
+                },
+                "target": {
+                  "fieldName": "sum(opportunity_amount)",
+                  "period": {
+                    "type": "relative-to-value-period",
+                    "offset": -1
+                  }
+                },
+                "period": {
+                  "fieldName": "monthly(closedate)"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 7,
+            "y": 0,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "gerente",
+            "queries": [
+              {
+                "name": "dashboards/01f11742a17b103387dd4934180c0581/datasets/01f117cd37fe10729a70af5f14073d29_salesman_manager",
+                "query": {
+                  "datasetName": "142c4fbf",
+                  "fields": [
+                    {
+                      "name": "salesman_manager",
+                      "expression": "`salesman_manager`"
+                    },
+                    {
+                      "name": "salesman_manager_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Gerente"
+              },
+              "widgetType": "filter-single-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "salesman_manager",
+                    "queryName": "dashboards/01f11742a17b103387dd4934180c0581/datasets/01f117cd37fe10729a70af5f14073d29_salesman_manager"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 0,
+            "width": 3,
+            "height": 1
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "locale": "pt-BR",
+    "theme": {
+      "canvasBackgroundColor": {
+        "light": "#FAFAFB",
+        "dark": "#1F272D"
+      },
+      "widgetBackgroundColor": {
+        "light": "#FFFFFF",
+        "dark": "#11171C"
+      },
+      "fontColor": {
+        "light": "#11171C",
+        "dark": "#E8ECF0"
+      },
+      "selectionColor": {
+        "light": "#2272B4",
+        "dark": "#8ACAFF"
+      },
+      "visualizationColors": [
+        "#077A9D",
+        "#FFAB00",
+        "#00A972",
+        "#FF3621",
+        "#8BCAE7",
+        "#AB4057",
+        "#99DDB4",
+        "#FCA4A1",
+        "#919191",
+        "#BF7080"
+      ],
+      "widgetHeaderAlignment": "LEFT"
+    },
+    "applyModeEnabled": false
+  }
+}
